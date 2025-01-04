@@ -13,34 +13,57 @@ const createPremixesTable = () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
-  db.run(query, (err) => {
-    if (err) {
-      console.error("Error creating premixes table:", err);
-    } else {
-      console.log("Premixes table created or already exists.");
-    }
-  });
+  try {
+    db.prepare(query).run(); // Síncrono en better-sqlite3
+    console.log("Premixes table created or already exists.");
+  } catch (err) {
+    console.error("Error creating premixes table:", err);
+  }
 };
 
 createPremixesTable();
 
 module.exports = {
-  getAllPremixes: (callback) => {
-    const query = "SELECT * FROM premixes";
-    db.all(query, [], callback);
+  getAllPremixes: () => {
+    try {
+      return db.prepare("SELECT * FROM premixes").all();
+    } catch (err) {
+      console.error("Error fetching premixes:", err);
+      throw err;
+    }
   },
-  addPremix: (name, ingredients, preparation, status, image_url, callback) => {
-    const query =
-      "INSERT INTO premixes (name, ingredients, preparation, status, image_url) VALUES (?, ?, ?, ?, ?)";
-    db.run(query, [name, ingredients, preparation, status, image_url], callback);
+  addPremix: (name, ingredients, preparation, status, image_url) => {
+    const query = `
+      INSERT INTO premixes (name, ingredients, preparation, status, image_url)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    try {
+      db.prepare(query).run(name, ingredients, preparation, status, image_url);
+    } catch (err) {
+      console.error("Error adding premix:", err);
+      throw err;
+    }
   },
-  deletePremix: (id, callback) => {
+  deletePremix: (id) => {
     const query = "DELETE FROM premixes WHERE id = ?";
-    db.run(query, [id], callback);
+    try {
+      db.prepare(query).run(id);
+    } catch (err) {
+      console.error("Error deleting premix:", err);
+      throw err;
+    }
   },
-  updatePremixStatus: (id, status, callback) => {
-    const query = "UPDATE premixes SET status = ? WHERE id = ?";
-    db.run(query, [status, id], callback);
+  updatePremixStatus: (id, status) => {
+    const query = `
+      UPDATE premixes
+      SET status = ?
+      WHERE id = ?
+    `;
+    try {
+      db.prepare(query).run(status, id);
+    } catch (err) {
+      console.error("Error updating premix status:", err);
+      throw err;
+    }
   },
 };
-

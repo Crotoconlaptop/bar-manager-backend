@@ -13,37 +13,57 @@ const createOrdersTable = () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
-  db.run(query, (err) => {
-    if (err) {
-      console.error("Error creating orders table:", err);
-    } else {
-      console.log("Orders table created or already exists.");
-    }
-  });
+  try {
+    db.prepare(query).run();
+    console.log("Orders table created or already exists.");
+  } catch (err) {
+    console.error("Error creating orders table:", err);
+  }
 };
 
 createOrdersTable();
 
 module.exports = {
-  getAllOrders: (callback) => {
-    const query = "SELECT * FROM orders";
-    db.all(query, [], callback);
+  getAllOrders: () => {
+    try {
+      return db.prepare("SELECT * FROM orders").all();
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      throw err;
+    }
   },
-  addOrder: (products, callback) => {
-    const query =
-      "INSERT INTO orders (name, products, status) VALUES (datetime('now'), ?, 'pending')";
-    db.run(query, [products], callback);
-  },
-  updateOrder: (id, received_by, comments, callback) => {
+  addOrder: (products) => {
     const query = `
-      UPDATE orders 
-      SET status = 'received', received_by = ?, comments = ? 
+      INSERT INTO orders (name, products, status)
+      VALUES (datetime('now'), ?, 'pending')
+    `;
+    try {
+      db.prepare(query).run(products);
+    } catch (err) {
+      console.error("Error adding order:", err);
+      throw err;
+    }
+  },
+  updateOrder: (id, received_by, comments) => {
+    const query = `
+      UPDATE orders
+      SET status = 'received', received_by = ?, comments = ?
       WHERE id = ?
     `;
-    db.run(query, [received_by, comments, id], callback);
+    try {
+      db.prepare(query).run(received_by, comments, id);
+    } catch (err) {
+      console.error("Error updating order:", err);
+      throw err;
+    }
   },
-  deleteOrder: (id, callback) => {
+  deleteOrder: (id) => {
     const query = "DELETE FROM orders WHERE id = ?";
-    db.run(query, [id], callback);
+    try {
+      db.prepare(query).run(id);
+    } catch (err) {
+      console.error("Error deleting order:", err);
+      throw err;
+    }
   },
 };

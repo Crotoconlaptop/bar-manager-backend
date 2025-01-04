@@ -1,6 +1,6 @@
 const db = require("../database/db");
 
-// Crear tabla de tragos si no existe
+// Crear tabla de cocktails si no existe
 const createCocktailsTable = () => {
   const query = `
     CREATE TABLE IF NOT EXISTS cocktails (
@@ -11,29 +11,44 @@ const createCocktailsTable = () => {
       image_url TEXT
     )
   `;
-  db.run(query, (err) => {
-    if (err) {
-      console.error("Error creating cocktails table:", err);
-    } else {
-      console.log("Cocktails table created or already exists.");
-    }
-  });
+  try {
+    db.prepare(query).run();
+    console.log("Cocktails table created or already exists.");
+  } catch (err) {
+    console.error("Error creating cocktails table:", err);
+  }
 };
 
 createCocktailsTable();
 
 module.exports = {
-  getAllCocktails: (callback) => {
-    const query = "SELECT * FROM cocktails";
-    db.all(query, [], callback);
+  getAllCocktails: () => {
+    try {
+      return db.prepare("SELECT * FROM cocktails").all();
+    } catch (err) {
+      console.error("Error fetching cocktails:", err);
+      throw err;
+    }
   },
-  addCocktail: (name, ingredients, preparation, image_url, callback) => {
-    const query =
-      "INSERT INTO cocktails (name, ingredients, preparation, image_url) VALUES (?, ?, ?, ?)";
-    db.run(query, [name, ingredients, preparation, image_url], callback);
+  addCocktail: (name, ingredients, preparation, image_url) => {
+    const query = `
+      INSERT INTO cocktails (name, ingredients, preparation, image_url)
+      VALUES (?, ?, ?, ?)
+    `;
+    try {
+      db.prepare(query).run(name, ingredients, preparation, image_url);
+    } catch (err) {
+      console.error("Error adding cocktail:", err);
+      throw err;
+    }
   },
-  deleteCocktail: (id, callback) => {
+  deleteCocktail: (id) => {
     const query = "DELETE FROM cocktails WHERE id = ?";
-    db.run(query, [id], callback);
+    try {
+      db.prepare(query).run(id);
+    } catch (err) {
+      console.error("Error deleting cocktail:", err);
+      throw err;
+    }
   },
 };
