@@ -3,12 +3,18 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const path = require("path");
 
-
 const app = express();
 const PORT = 8000; // Puerto en el que correrá el backend
 
+// Configuración de CORS
+const corsOptions = {
+  origin: "https://bar-manager-omega.vercel.app", // Cambia esto al dominio de tu frontend
+  methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
+  allowedHeaders: ["Content-Type"], // Headers permitidos
+};
+
 // Middlewares
-app.use(cors()); // Permitir solicitudes desde cualquier origen
+app.use(cors(corsOptions)); // Aplica configuración específica de CORS
 app.use(bodyParser.json()); // Parsear cuerpos en formato JSON
 
 // Servir archivos estáticos desde la carpeta uploads
