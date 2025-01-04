@@ -1,6 +1,7 @@
 const sqlite3 = require("sqlite3").verbose();
 
-const DB_PATH = "./database/bar_manager.db"; // Ruta para el archivo SQLite
+const DB_PATH = process.env.DATABASE_URL || "./database/bar_manager.db";
+
 
 // Crear conexión a la base de datos
 const db = new sqlite3.Database(DB_PATH, (err) => {
